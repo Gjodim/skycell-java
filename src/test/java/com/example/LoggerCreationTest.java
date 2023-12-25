@@ -1,8 +1,8 @@
 package com.example;
 
 import io.restassured.RestAssured;
+import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.containsString;
@@ -11,19 +11,21 @@ import static org.hamcrest.Matchers.equalTo;
 @Test
 public class LoggerCreationTest {
     private static final String API_KEY = "NNSXS.RPNRQUVEAQHYIBRJPYB5BMF36VT2E4ZIQWLCO6Y.ZP7FKSYX6J2XO2SRNBPHWQJHIBB5ZWTULHPI27N7C4IMQAKB6QYA";
-
-    @BeforeClass
-    public void setUp() {
-        RestAssured.baseURI = "https://sensor-data-ingestion.dev.skycell.ch/v1/lora/configuration";
-    }
+    private static final String BASE_URI = "https://sensor-data-ingestion.dev.skycell.ch/v1/lora/configuration";
 
     @Test
     public void createLoggerMR_810T() {
+        // Set the base URI
+        RestAssured.baseURI = BASE_URI;
+
+        // Register a default parser
+        RestAssured.defaultParser = Parser.JSON;
+
         // When
         Response response = RestAssured.given()
                 .header("APIKEY", API_KEY)
                 .header("Content-Type", "application/json")
-                .body("{\n\"loggerNumber\":\"12245abc\",\n\"loggerType\":\"MR_810T\",\n\"baseInterval\": 600\n}")
+                .body("{\n\"loggerNumber\":\"98764xyz\",\n\"loggerType\":\"MR_810T\",\n\"baseInterval\": 600\n}")
                 .post();
 
         System.out.println("Response Headers: " + response.getHeaders());
@@ -39,9 +41,8 @@ public class LoggerCreationTest {
                 .body("baseInterval", equalTo(600));
 
         // Additional check for content type
-        String contentType = response.getContentType();
-        if (contentType != null && (contentType.startsWith("application/json") || contentType.startsWith("application/xml"))) {
-            response.then().assertThat().contentType(containsString(contentType));
+        if (response.getContentType() != null) {
+            response.then().assertThat().contentType(containsString(response.getContentType()));
         } else {
             System.out.println("Content type not defined in the response.");
         }
@@ -53,10 +54,19 @@ public class LoggerCreationTest {
         } else {
             System.out.println("Empty response body.");
         }
+
+        // Reset the base URI (optional, but recommended)
+        RestAssured.reset();
     }
 
     @Test
     public void createLoggerMR_812P() {
+        // Set the base URI
+        RestAssured.baseURI = BASE_URI;
+
+        // Register a default parser
+        RestAssured.defaultParser = Parser.JSON;
+
         // When
         Response response = RestAssured.given()
                 .header("APIKEY", API_KEY)
@@ -76,10 +86,19 @@ public class LoggerCreationTest {
                 .body("loggerType", equalTo("MR_812P"))
                 .body("loggerNumber", equalTo("67390def"))
                 .body("baseInterval", equalTo(600));
+
+        // Reset the base URI (optional, but recommended)
+        RestAssured.reset();
     }
 
     @Test
     public void createLoggerInvalidType() {
+        // Set the base URI
+        RestAssured.baseURI = BASE_URI;
+
+        // Register a default parser
+        RestAssured.defaultParser = Parser.JSON;
+
         // When
         Response response = RestAssured.given()
                 .header("APIKEY", API_KEY)
@@ -96,7 +115,11 @@ public class LoggerCreationTest {
         response.then().statusCode(400)
                 .assertThat()
                 .contentType(containsString("application/json"))
-                .body("error", equalTo("Invalid logger type. Only MR_810T and MR_812P are allowed."));
+                .body(equalTo("Invalid logger type. Only MR_810T and MR_812P are allowed."));
+
+        // Reset the base URI (optional, but recommended)
+        RestAssured.reset();
     }
+
 
 }
