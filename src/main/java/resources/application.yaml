@@ -1,0 +1,36 @@
+openapi: 3.0.0
+info:
+  title: Logger Data API
+  version: 1.0.0
+paths:
+  /logger:
+    post:
+      summary: Insert Logger Data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoggerData'
+      responses:
+        '201':
+          description: Logger data inserted successfully
+
+components:
+  schemas:
+    LoggerData:
+      type: object
+      properties:
+        loggerNumber:
+          type: string
+          description: Unique identifier for the logger
+        loggerType:
+          type: string
+          description: Type of the logger (e.g., MR_810T, MR_812P)
+        baseInterval:
+          type: integer
+          description: Base interval in seconds
+      required:
+        - loggerNumber
+        - loggerType
+        - baseInterval
