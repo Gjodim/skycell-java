@@ -1,27 +1,27 @@
 package com.example;
 
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.When;
+import io.cucumber.java.en.Then;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.path.json.JsonPath;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-@Test
 public class AuthenticationStepsTest {
+
     private Response response;
     private final String baseUri = ConfigurationManager.getProperty("keycloak.baseUri");
 
-    @BeforeClass
-    public void setUp() {
+    @Given("the Keycloak API is available")
+    public void givenTheKeycloakAPIIsAvailable() {
         RestAssured.baseURI = baseUri;
     }
 
-    @Test
-    public void authenticationTest() {
+    @When("a user authenticates with valid credentials")
+    public void whenAUserAuthenticatesWithValidCredentials() {
         String username = ConfigurationManager.getProperty("keycloak.username");
         String password = ConfigurationManager.getProperty("keycloak.password");
 
@@ -29,19 +29,18 @@ public class AuthenticationStepsTest {
                 .contentType(ContentType.URLENC)
                 .formParams("client_id", "webapp", "grant_type", "password", "username", username, "password", password)
                 .post();
+    }
 
-        System.out.println("Response Body: " + response.getBody().asString());
-
+    @Then("the authentication should be successful")
+    public void thenTheAuthenticationShouldBeSuccessful() {
         response.then().statusCode(200);
 
         JsonPath jsonPath = response.jsonPath();
         String accessToken = jsonPath.getString("access_token");
 
         System.out.println("Access Token Is: " + accessToken);
-
         assertThat(accessToken, not(emptyOrNullString()));
 
-        ConfigurationManager.setProperty("access_token", accessToken);
-
+        ConfigurationManager.setProperty("access.token", accessToken);
     }
 }

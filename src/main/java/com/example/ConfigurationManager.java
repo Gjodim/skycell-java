@@ -1,8 +1,6 @@
 package com.example;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Properties;
 
 public class ConfigurationManager {
@@ -16,7 +14,9 @@ public class ConfigurationManager {
     private static void loadProperties() {
         properties = new Properties();
         try (InputStream input = ConfigurationManager.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
-            properties.load(input);
+            if (input != null) {
+                properties.load(input);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -28,13 +28,14 @@ public class ConfigurationManager {
 
     public static void setProperty(String key, String value) {
         properties.setProperty(key, value);
-        try (FileOutputStream output = new FileOutputStream(CONFIG_FILE)) {
+        saveProperties();
+    }
+
+    private static void saveProperties() {
+        try (OutputStream output = new FileOutputStream(CONFIG_FILE)) {
             properties.store(output, null);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        // Reload the properties after updating the file
-        loadProperties();
     }
 }
