@@ -13,38 +13,35 @@ import static org.junit.Assert.assertThat;
 @Test
 public class AuthenticationStepsTest {
     private Response response;
+    private final String baseUri = ConfigurationManager.getProperty("keycloak.baseUri");
 
     @BeforeClass
     public void setUp() {
-        // Set the baseURI directly
-        RestAssured.baseURI = "https://keycloak.dev.skycell.ch/realms/skycell/protocol/openid-connect/token";
+        RestAssured.baseURI = baseUri;
     }
 
     @Test
     public void authenticationTest() {
-        // Given
-        String username = "qa_interview@skycell.ch";
-        String password = "Qa_interview2023!";
+        String username = ConfigurationManager.getProperty("keycloak.username");
+        String password = ConfigurationManager.getProperty("keycloak.password");
 
-        // When
         response = RestAssured.given()
                 .contentType(ContentType.URLENC)
                 .formParams("client_id", "webapp", "grant_type", "password", "username", username, "password", password)
                 .post();
 
-        // Print the response body for debugging
         System.out.println("Response Body: " + response.getBody().asString());
 
-        // Then
         response.then().statusCode(200);
 
-        // Additional validation logic for the access token
         JsonPath jsonPath = response.jsonPath();
         String accessToken = jsonPath.getString("access_token");
 
         System.out.println("Access Token Is: " + accessToken);
 
         assertThat(accessToken, not(emptyOrNullString()));
-        // Add more validation logic based on your specific requirements
+
+        ConfigurationManager.setProperty("access_token", accessToken);
+
     }
 }

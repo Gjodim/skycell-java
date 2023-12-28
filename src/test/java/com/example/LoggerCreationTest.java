@@ -10,114 +10,94 @@ import static org.hamcrest.Matchers.equalTo;
 
 @Test
 public class LoggerCreationTest {
-    private static final String API_KEY = "NNSXS.RPNRQUVEAQHYIBRJPYB5BMF36VT2E4ZIQWLCO6Y.ZP7FKSYX6J2XO2SRNBPHWQJHIBB5ZWTULHPI27N7C4IMQAKB6QYA";
-    private static final String BASE_URI = "https://sensor-data-ingestion.dev.skycell.ch/v1/lora/configuration";
+    private static final String apiKey = ConfigurationManager.getProperty("api.key");
+    private static final String baseUri = ConfigurationManager.getProperty("api.baseUri");
 
     @Test
-    public void createLoggerMR_810T() {
-        // Set the base URI
-        RestAssured.baseURI = BASE_URI;
+    public void createLogger() {
+        createLogger("MR_810T", "98764ABC");
+        createLogger("MR_812P", "99885CAB");
+        createInvalidLogger("MR_888C", "99885ACB");
+    }
 
-        // Register a default parser
+    private void createLogger(String loggerType, String loggerNumber) {
+        RestAssured.baseURI = baseUri;
         RestAssured.defaultParser = Parser.JSON;
 
-        // When
         Response response = RestAssured.given()
-                .header("APIKEY", API_KEY)
+                .header("APIKEY", apiKey)
                 .header("Content-Type", "application/json")
-                .body("{\n\"loggerNumber\":\"98764xyz\",\n\"loggerType\":\"MR_810T\",\n\"baseInterval\": 600\n}")
+                .body(String.format("{\n\"loggerNumber\":\"%s\",\n\"loggerType\":\"%s\",\n\"baseInterval\": 600\n}", loggerNumber, loggerType))
                 .post();
 
-        System.out.println("Response Headers: " + response.getHeaders());
+        printResponseDetails(response);
 
-        // Print actual content type
-        System.out.println("Actual Content Type: " + response.getContentType());
-
-        // Then
         response.then().statusCode(201)
                 .assertThat()
-                .body("loggerType", equalTo("MR_810T"))
-                .body("loggerNumber", equalTo("12245abc"))
+                .header("Content-Type", containsString("application/json"))
+                .body("loggerType", equalTo(loggerType))
+                .body("loggerNumber", equalTo(loggerNumber))
                 .body("baseInterval", equalTo(600));
 
-        // Additional check for content type
-        if (response.getContentType() != null) {
-            response.then().assertThat().contentType(containsString(response.getContentType()));
+        RestAssured.reset();
+    }
+
+    private void createInvalidLogger(String loggerType, String loggerNumber) {
+        RestAssured.baseURI = baseUri;
+        RestAssured.defaultParser = Parser.JSON;
+
+        Response response = RestAssured.given()
+                .header("APIKEY", apiKey)
+                .header("Content-Type", "application/json")
+                .body(String.format("{\n\"loggerNumber\":\"%s\",\n\"loggerType\":\"%s\",\n\"baseInterval\": 600\n}", loggerNumber, loggerType))
+                .post();
+
+        printResponseDetails(response);
+
+        response.then().statusCode(400)
+                .assertThat()
+                .contentType(containsString("application/json"))
+                .body(equalTo("Invalid logger type. Only MR_810T and MR_812P are allowed."));
+
+        RestAssured.reset();
+    }
+
+    private void printResponseDetails(Response response) {
+        System.out.println("Response Headers: " + response.getHeaders());
+
+        String actualContentType = response.getContentType();
+        if (actualContentType != null && !actualContentType.trim().isEmpty()) {
+            System.out.println("Actual Content Type: " + actualContentType);
+            response.then().assertThat().contentType(containsString("application/json"));
         } else {
-            System.out.println("Content type not defined in the response.");
+            System.out.println("Content type not defined in the response or is an empty string.");
         }
 
-        // Additional check for empty response body
         String responseBody = response.getBody().asString();
         if (responseBody != null && !responseBody.trim().isEmpty()) {
             System.out.println("Response Body: " + responseBody);
         } else {
             System.out.println("Empty response body.");
         }
-
-        // Reset the base URI (optional, but recommended)
-        RestAssured.reset();
     }
 
-    @Test
-    public void createLoggerMR_812P() {
-        // Set the base URI
-        RestAssured.baseURI = BASE_URI;
-
-        // Register a default parser
-        RestAssured.defaultParser = Parser.JSON;
-
-        // When
-        Response response = RestAssured.given()
-                .header("APIKEY", API_KEY)
-                .header("Content-Type", "application/json")
-                .body("{\n\"loggerNumber\":\"98765xyz\",\n\"loggerType\":\"MR_812P\",\n\"baseInterval\": 600\n}")
-                .post();
-
-        System.out.println("Response Headers: " + response.getHeaders());
-
-        // Print actual content type
-        System.out.println("Actual Content Type: " + response.getContentType());
-
-        // Then
-        response.then().statusCode(201)
-                .assertThat()
-                .contentType(containsString("application/json"))
-                .body("loggerType", equalTo("MR_812P"))
-                .body("loggerNumber", equalTo("67390def"))
-                .body("baseInterval", equalTo(600));
-
-        // Reset the base URI (optional, but recommended)
-        RestAssured.reset();
+    public void cleanup() {
+        // Implement logic to delete or reset the loggers created during the test.
+        deleteLogger("MR_810T", "98764ABC");
+        deleteLogger("MR_812P", "99885CAB");
+        //deleteLogger("MR_888C", "99885ACB");
     }
 
-    @Test
-    public void createLoggerInvalidType() {
-        // Set the base URI
-        RestAssured.baseURI = BASE_URI;
-
-        // Register a default parser
+    private void deleteLogger(String loggerType, String loggerNumber) {
+        RestAssured.baseURI = baseUri;
         RestAssured.defaultParser = Parser.JSON;
 
-        // When
         Response response = RestAssured.given()
-                .header("APIKEY", API_KEY)
-                .header("Content-Type", "application/json")
-                .body("{\n\"loggerNumber\":\"98765xyz\",\n\"loggerType\":\"MR_888C\",\n\"baseInterval\": 600\n}")
-                .post();
+                .header("APIKEY", apiKey)
+                .delete(baseUri+"/v1/lora/configuration/{loggerType}/{loggerNumber}", loggerType, loggerNumber);
 
-        System.out.println("Response Headers: " + response.getHeaders());
+        response.then().statusCode(204);
 
-        // Print actual content type
-        System.out.println("Actual Content Type: " + response.getContentType());
-
-        // Then
-        response.then().statusCode(400)
-                .assertThat()
-                .contentType(containsString("application/json"))
-                .body(equalTo("Invalid logger type. Only MR_810T and MR_812P are allowed."));
-
-        // Reset the base URI (optional, but recommended)
         RestAssured.reset();
     }
 
