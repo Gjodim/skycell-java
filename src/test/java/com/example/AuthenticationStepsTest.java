@@ -38,9 +38,9 @@ public class AuthenticationStepsTest {
         JsonPath jsonPath = response.jsonPath();
         String accessToken = jsonPath.getString("access_token");
 
-        System.out.println("Access Token Is: " + accessToken);
         assertThat(accessToken, not(emptyOrNullString()));
 
         ConfigurationManager.setProperty("access.token", accessToken);
+        System.out.println("Access Token Is: " + ConfigurationManager.getProperty("access.token"));
     }
 }
