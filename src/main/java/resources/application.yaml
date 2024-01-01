@@ -1,9 +1,9 @@
 openapi: 3.0.0
 info:
-  title: Logger Data API
+  title: Logger Data Insertion API
   version: 1.0.0
 paths:
-  /logger:
+  /v1/lora/configuration:
     post:
       summary: Insert Logger Data
       requestBody:
@@ -15,7 +15,8 @@ paths:
       responses:
         '201':
           description: Logger data inserted successfully
-
+        '400':
+          description: Invalid logger data
 components:
   schemas:
     LoggerData:
@@ -23,14 +24,14 @@ components:
       properties:
         loggerNumber:
           type: string
-          description: Unique identifier for the logger
+          maxLength: 16
+          pattern: ^[0-9A-Fa-f]{1,16}$
         loggerType:
           type: string
-          description: Type of the logger (e.g., MR_810T, MR_812P)
+          enum:
+            - MR_810T
+            - MR_821P
         baseInterval:
           type: integer
-          description: Base interval in seconds
-      required:
-        - loggerNumber
-        - loggerType
-        - baseInterval
+          format: int32
+          default: 600

@@ -10,8 +10,8 @@ Feature: Logger Creation
 
     Examples:
       | LoggerType | LoggerNumber |
-      | MR_810T     | 98764ABC     |
-      | MR_812P     | 99885CAB     |
+      | MR_810T     | 98765432     |
+      | MR_812P     | 12345678     |
 
   Scenario: Create an invalid logger
     When I create an invalid logger with type "MR_888C" and number "99885ACB"
