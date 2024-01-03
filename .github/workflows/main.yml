@@ -2,39 +2,45 @@ name: Run Tests
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 1 * * *'  # Schedule to run every night at 1 am CET
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-
-    env:
-      BASE_URI: ${{ secrets.BASE_URI }}
-      API_KEY: ${{ secrets.API_KEY }}
-      username: ${{  secrets.username  }}
-      password: ${{  secrets.password  }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Set up JDK 11
+      - name: Set up Java
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
           java-version: '11'
 
       - name: Set up Maven
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'maven'
-          java-version: '3.8'
-
-      - name: Run Tests
         run: |
-          mvn test
-        env:
-          BASE_URI: ${{ env.BASE_URI }}
-          API_KEY: ${{ env.API_KEY }}
-          username: ${{  env.username  }}
-          password: ${{  env.password  }}
+          sudo apt-get install -y maven
+          mvn -v
+
+      - name: Set up Environment Variables
+        run: |
+          echo "keycloak_baseUri=${{ secrets.KEYCLOAK_BASE_URI }}" >> .env
+          echo "keycloak_username=${{ secrets.KEYCLOAK_USERNAME }}" >> .env
+          echo "keycloak_password=${{ secrets.KEYCLOAK_PASSWORD }}" >> .env
+          echo "api_baseUri=${{ secrets.API_BASE_URI }}" >> .env
+          echo "api_key=${{ secrets.API_KEY }}" >> .env
+
+      - name: Set up Configuration Properties
+        run: |
+          echo "keycloak.baseUri=${{ secrets.KEYCLOAK_BASE_URI }}" >> src/test/resources/config.properties
+          echo "keycloak.username=${{ secrets.KEYCLOAK_USERNAME }}" >> src/test/resources/config.properties
+          echo "keycloak.password=${{ secrets.KEYCLOAK_PASSWORD }}" >> src/test/resources/config.properties
+          echo "api.baseUri=${{ secrets.API_BASE_URI }}" >> src/test/resources/config.properties
+          echo "api.key=${{ secrets.API_KEY }}" >> src/test/resources/config.properties
+
+      - name: Install Dependencies
+        run: mvn clean install -DskipTests
+
+      - name: Run Cucumber Tests
+        run: mvn test

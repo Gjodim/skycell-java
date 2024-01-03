@@ -95,6 +95,12 @@
     </dependency>
 
     <dependency>
+      <groupId>net.masterthought</groupId>
+      <artifactId>cucumber-reporting</artifactId>
+      <version>5.5.0</version>
+    </dependency>
+
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
@@ -106,6 +112,24 @@
       <artifactId>hamcrest-all</artifactId>
       <version>${hamcrest.version}</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openapitools</groupId>
+      <artifactId>openapi-generator</artifactId>
+      <version>${openapi.generator.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openapitools</groupId>
+      <artifactId>openapi-generator-cli</artifactId>
+      <version>${openapi.generator.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openapitools</groupId>
+      <artifactId>openapi-generator-maven-plugin</artifactId>
+      <version>${openapi.generator.version}</version>
     </dependency>
 
     <dependency>
@@ -128,6 +152,26 @@
       <version>${allure.restassured.version}</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>logging-interceptor</artifactId>
+      <version>4.9.1</version> <!-- Use the latest version -->
+    </dependency>
+
+    <!-- Dependency for com.google.gson -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.8.8</version> <!-- Use the latest version -->
+    </dependency>
+
+    <dependency>
+      <groupId>io.gsonfire</groupId>
+      <artifactId>gson-fire</artifactId>
+      <version>1.8.3</version> <!-- Use the latest version -->
+    </dependency>
+
   </dependencies>
 
 
@@ -161,6 +205,9 @@
           <includes>
             <include>**/*Test.java</include>
           </includes>
+          <argLine>
+            -Dcucumber.options="--plugin json:target/cucumber-report.json"
+          </argLine>
         </configuration>
       </plugin>
 
@@ -180,6 +227,27 @@
               <configOptions>
                 <sourceFolder>src/gen/java/main</sourceFolder>
               </configOptions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>net.masterthought</groupId>
+        <artifactId>maven-cucumber-reporting</artifactId>
+        <version>5.5.0</version>
+        <executions>
+          <execution>
+            <id>execution</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <projectName>skycell-java</projectName>
+              <jsonFiles>
+                <param>${project.build.directory}/cucumber-reports/cucumber-html-reports/overview-features.json</param>
+              </jsonFiles>
             </configuration>
           </execution>
         </executions>
