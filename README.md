@@ -1,6 +1,11 @@
 # Skycell Java Project
 
 This project contains automated tests for the Skycell system using Java, Rest Assured, and Cucumber.
+The contents of the solution are:
+1. batteryReplacement.feature
+2. authentication.feature + AuthenticationStepsTest
+3. loggerCreation.feature + LoggerCreationTest
+4. OpenAPI + GitHub actions
 
 ## Table of Contents
 
