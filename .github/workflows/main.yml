@@ -42,5 +42,15 @@ jobs:
       - name: Install Dependencies
         run: mvn clean install -DskipTests
 
-      - name: Run Cucumber Tests
-        run: mvn test
+      - name: Run Tests and Generate Allure Report
+        run: |
+          mvn clean test
+          mvn allure:report
+        env:
+          JAVA_HOME: ${{ matrix.java-version }}
+
+      - name: Upload Allure Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: allure-report
+          path: target/allure-report
